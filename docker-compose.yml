@@ -1,0 +1,22 @@
+version: '3.3'
+
+services:
+
+  db-deploy:
+    build:
+      context: ./DB
+      dockerfile: Dockerfile
+    entrypoint: '/build/wait_for_it.sh db:3306 -t 30 -- flyway migrate -url=jdbc:mysql://db -schemas=Demo -user=root -password=P@ssw0rd'
+    volumes:
+      - ./build:/build
+    depends_on:
+      - db
+
+  db:
+    image: mysql:5.7.29
+    environment:
+      - MYSQL_ROOT_PASSWORD=P@ssw0rd
+      - MYSQL_DATABASE=Demo
+    command: --character-set-server=latin1 --collation-server=latin1_general_ci
+    ports:
+      - 6603:3306

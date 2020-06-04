@@ -1,0 +1,106 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: An AWS Serverless Application that uses the ASP.NET Core framework running
+  in Amazon Lambda.
+Parameters:
+  DBUser: 
+    NoEcho: true
+    Description: The database admin account username
+    Type: String
+    MinLength: 1
+    MaxLength: 16
+    AllowedPattern: "[a-zA-Z][a-zA-Z0-9]*"
+    ConstraintDescription: must begin with a letter and contain only alphanumeric characters.
+  DBPassword: 
+    NoEcho: true
+    Description: The database admin account password
+    Type: String
+    MinLength: 1
+    MaxLength: 41
+    AllowedPattern: "[a-zA-Z0-9]*"
+    ConstraintDescription: must contain only alphanumeric characters.
+Globals:
+  Function:
+    Environment:
+      Variables:
+        DBConnectionString: !Join ['', ['Server=', !GetAtt DemoDB.Endpoint.Address, ';User=', !Ref DBUser, ';Database=Demo', ';Password=', !Ref DBPassword, ';']]    
+Outputs:
+  DBEndpoint:
+    Description: "The connection endpoint for the MySQL database"
+    Value: !GetAtt [ "DemoDB", "Endpoint.Address" ]
+  ApiURL:
+    Description: API endpoint URL for Prod environment
+    Value: !Sub 'https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/'  
+Resources:
+  FunctionIAMRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+        Path: "/"
+        ManagedPolicyArns:
+            - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+            - "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+            - "arn:aws:iam::aws:policy/AmazonSSMFullAccess"
+            - "arn:aws:iam::aws:policy/AmazonSESFullAccess"
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            -
+              Sid: "AllowLambdaServiceToAssumeRole"
+              Effect: "Allow"
+              Action: 
+                - "sts:AssumeRole"
+              Principal:
+                Service: 
+                  - "lambda.amazonaws.com"
+        Policies:
+          - PolicyName: "ApiLambdaExecutionPolicy"
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+              - Action: 
+                  - "es:*"
+                Effect: "Allow"
+                Resource: "*"                  
+  AspNetCoreFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: Demo.Api::Demo.Api.LambdaEntryPoint::FunctionHandlerAsync
+      Runtime: dotnetcore2.1
+      CodeUri: ''
+      MemorySize: 256
+      Timeout: 30
+      Role: !GetAtt FunctionIAMRole.Arn
+      Environment:
+        Variables:          
+          DBEndpoint: !GetAtt [ "DemoDB", "Endpoint.Address" ]
+      Events:
+        ProxyResource:
+          Type: Api
+          Properties:
+            Path: /{proxy+}
+            Method: ANY
+        RootResource:
+          Type: Api
+          Properties:
+            Path: /
+            Method: ANY
+  DemoDB: 
+    Type: "AWS::RDS::DBInstance"
+    Properties: 
+      DBInstanceIdentifier: demo-db
+      AllocatedStorage: 5
+      DBInstanceClass: db.t2.micro
+      Engine: MySQL
+      EngineVersion: 5.7.22
+      MasterUsername: !Ref DBUser
+      MasterUserPassword: !Ref DBPassword
+      DBParameterGroupName: !Ref MyRDSParamGroup
+  MyRDSParamGroup: 
+    Type: "AWS::RDS::DBParameterGroup"
+    Properties: 
+      Family: MySQL5.7
+      Description: Database Parameter Group
+      Parameters: 
+        autocommit: 1
+        general_log: 1
+        old_passwords: 0

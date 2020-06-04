@@ -1,0 +1,14 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 8
+    commands:
+      - echo "Configuring build files"
+      # Allow execute on the files, -v is verbose, -v -v is more verbose
+      - chmod -v -v +x ./DB/*.sh
+      - ./DB/install.sh  
+  build:
+    commands:
+      - ./DB/build.sh

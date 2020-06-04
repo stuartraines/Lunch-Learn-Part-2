@@ -1,0 +1,22 @@
+version: 0.2
+
+env:
+  parameter-store:
+     buildNumber: "/build-number/demo-build"
+
+phases:
+    install:
+         runtime-versions:
+           dotnet: 2.2
+         commands:
+            - echo The current build number is $buildNumber
+            - dotnet tool install -g Amazon.Lambda.Tools
+    build:
+         commands:
+            - cd src/Demo.Api
+            - dotnet lambda package-ci --template serverless.template --s3-bucket $S3_BUCKET --output-template sam-template-output.yaml /p:VersionSuffix=$buildNumber /p:PreserveCompilationContext=true
+
+artifacts:
+    files:
+         - src/Demo.Api/sam-template-output.yaml
+    discard-paths: yes

@@ -73,6 +73,7 @@ Resources:
       Environment:
         Variables:          
           DBEndpoint: !GetAtt [ "DemoDB", "Endpoint.Address" ]
+          AuditSettings__Url: !Sub "https://${ElasticsearchDomain.DomainEndpoint}"          
       Events:
         ProxyResource:
           Type: Api

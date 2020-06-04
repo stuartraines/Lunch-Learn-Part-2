@@ -4,13 +4,15 @@ using System.Threading.Tasks;
 using Dapper;
 using Demo.Api.Configuration;
 using Demo.Api.Models;
+using Demo.Audit;
+using Demo.Audit.DynamicProxy;
 using Microsoft.Extensions.Options;
 using MySql.Data.MySqlClient;
 using static Dapper.SimpleCRUD;
 
 namespace Demo.Api.Repositories
 {
-    public class ProductRepository : IProductRepository
+    public class ProductRepository : IProductRepository, IAuditable
     {
         private readonly IOptions<AppSettings> _appSettings;
 
@@ -19,6 +21,8 @@ namespace Demo.Api.Repositories
             _appSettings = appSettings;
         }
 
+        [EventType("Demo.Product.Create")]
+        [return:AuditIgnore]
         public async Task<int?> CreateAsync(string name, decimal price, bool active)
         {
             using (var connection = new MySqlConnection(_appSettings.Value.DBConnectionString))
@@ -29,6 +33,7 @@ namespace Demo.Api.Repositories
             }
         }
 
+        [AuditIgnore]
         public async Task<Product> GetAsync(int productId)
         {
             using (var connection = new MySqlConnection(_appSettings.Value.DBConnectionString))
@@ -39,6 +44,7 @@ namespace Demo.Api.Repositories
             }
         }
 
+        [AuditIgnore]
         public async Task<IEnumerable<Product>> ListAsync()
         {
             using (var connection = new MySqlConnection(_appSettings.Value.DBConnectionString))
@@ -51,6 +57,7 @@ namespace Demo.Api.Repositories
             }
         }
 
+        [EventType("Demo.Product.Update")]
         public async Task<bool> UpdateAsync(Product product)
         {
             using (var connection = new MySqlConnection(_appSettings.Value.DBConnectionString))

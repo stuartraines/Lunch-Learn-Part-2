@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Castle.Core" Version="4.3.0"/>
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.1.0"/>
+    <PackageReference Include="Microsoft.Extensions.Options" Version="2.1.0"/>
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="2.1.0"/>
+    <PackageReference Include="Audit.NET.Elasticsearch" Version="15.1.0"/>
+    <PackageReference Include="Elasticsearch.Net.Aws" Version="7.0.4"/>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Reflection" Version="4.3.0"/>
+  </ItemGroup>
+</Project>

@@ -16,6 +16,20 @@ namespace Demo.Api.Controllers
             this.productRepository = productRepository;
         }
 
+        [HttpGet("{productId}")]
+        public async Task<IActionResult> Get(int productId)
+        {
+            var product = await this.productRepository.GetAsync(productId);
+
+            if (product == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(product);
+        }
+
+
         [HttpGet]
         public async Task<IActionResult> List()
         {
@@ -37,6 +51,30 @@ namespace Demo.Api.Controllers
             var product = await this.productRepository.GetAsync(productId.Value);
 
             return Ok(product);
+        }
+
+        [HttpPut("{productId}")]
+        public async Task<IActionResult> Update(int productId, [FromBody] UpdateProductRequest request)
+        {
+            var product = await this.productRepository.GetAsync(productId);
+
+            if (product == null)
+            {
+                return NotFound();
+            }
+
+            product.Name = request.Name;
+            product.Price = request.Price;
+            product.Active = request.Active;
+
+            var success = await this.productRepository.UpdateAsync(product);
+
+            if (!success)
+            {
+                return new StatusCodeResult(500);
+            }
+
+            return Ok();
         }
     }
 }

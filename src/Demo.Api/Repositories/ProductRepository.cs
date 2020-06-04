@@ -50,5 +50,17 @@ namespace Demo.Api.Repositories
                 return products.Where(p => p.Active);
             }
         }
+
+        public async Task<bool> UpdateAsync(Product product)
+        {
+            using (var connection = new MySqlConnection(_appSettings.Value.DBConnectionString))
+            {
+                SimpleCRUD.SetDialect(Dialect.MySQL);
+
+                var rowsAffected = await connection.UpdateAsync(product);
+
+                return rowsAffected == 1;
+            }
+        }
     }
 }

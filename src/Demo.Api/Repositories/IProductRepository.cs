@@ -9,5 +9,6 @@ namespace Demo.Api.Repositories
         Task<int?> CreateAsync(string name, decimal price, bool active);
         Task<Product> GetAsync(int productId);
         Task<IEnumerable<Product>> ListAsync();
+        Task<bool> UpdateAsync(Product product);
     }
 }

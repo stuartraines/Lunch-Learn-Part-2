@@ -1,5 +1,6 @@
 ﻿using Demo.Api.Configuration;
 using Demo.Api.Repositories;
+using Demo.Audit.Extensions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -29,6 +30,11 @@ namespace Demo.Api
             services.AddDefaultAWSOptions(Configuration.GetAWSOptions());
 
             services.AddTransient<IProductRepository, ProductRepository>();
+
+            services.RegisterAuditServices(Configuration, scope => {
+                //TODO: Add global custom fields            
+            });
+            services.RegisterAllAuditableTypes(new[] { typeof(Startup).Assembly });            
 
             services.AddMvcCore()
                 .AddCors()

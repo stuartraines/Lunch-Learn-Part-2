@@ -73,6 +73,7 @@ Resources:
       Environment:
         Variables:          
           DBEndpoint: !GetAtt [ "DemoDB", "Endpoint.Address" ]
+          AuditSettings__Url: !Sub "https://${ElasticsearchDomain.DomainEndpoint}"          
       Events:
         ProxyResource:
           Type: Api
@@ -104,3 +105,28 @@ Resources:
         autocommit: 1
         general_log: 1
         old_passwords: 0
+  ElasticsearchDomain:
+    Type: "AWS::Elasticsearch::Domain"
+    DependsOn:
+      - FunctionIAMRole    
+    Properties:
+      DomainName: "demoapi"
+      ElasticsearchVersion: "7.4"
+      ElasticsearchClusterConfig:
+        InstanceCount: 1
+        InstanceType: "t2.small.elasticsearch"
+      EBSOptions:
+        EBSEnabled: "true"
+        Iops: 0
+        VolumeSize: "10"
+        VolumeType: "gp2"
+      SnapshotOptions:
+        AutomatedSnapshotStartHour: "14"
+      AccessPolicies:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: !GetAtt FunctionIAMRole.Arn
+            Action: "es:*"
+            Resource: !Sub "arn:aws:es:${AWS::Region}:${AWS::AccountId}:domain/demoapi/*"      
